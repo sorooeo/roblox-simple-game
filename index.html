@@ -116,6 +116,18 @@
             border-radius: 8px;
             max-width: 90%;
             word-wrap: break-word;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .message.user {
@@ -193,21 +205,6 @@
             background: #667eea;
             color: white;
             border-color: #667eea;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: #667eea;
-            border-radius: 50%;
-            animation: dot 1.5s infinite;
-            margin: 0 3px;
-        }
-
-        @keyframes dot {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
         }
 
         @media (max-width: 768px) {
@@ -299,6 +296,9 @@
             "animation": "Perfect! I'll create smooth animations for you. Your sprites will come to life!",
             "music": "Excellent! I'll create a music player with interactive controls.",
             "help": "I can help you create Scratch projects! Tell me what you want to build and I'll generate a working .sb3 file.",
+            "sprite": "Sprites are the characters or objects in your Scratch project. You can make them move, change colors, and interact with other sprites!",
+            "blocks": "Blocks are the building pieces in Scratch. They connect together like puzzle pieces to make your project do things!",
+            "scratch": "Scratch is a visual programming language perfect for beginners! You create programs by dragging and connecting blocks together.",
             "default": "That sounds interesting! Let me help you create that in Scratch. Fill in the form with your project details and I'll generate it for you!"
         };
 
@@ -317,7 +317,7 @@
             addMessage(text, true);
             chatInput.value = '';
 
-            // Simulate AI response
+            // Simulate AI response with typing indicator
             setTimeout(() => {
                 let response = aiResponses['default'];
                 const lowerText = text.toLowerCase();
@@ -330,7 +330,7 @@
                 }
 
                 addMessage(response, false);
-            }, 500);
+            }, 600);
         }
 
         function updatePreview() {
@@ -385,13 +385,9 @@
             const projectName = document.getElementById('projectName').value || 'Untitled Project';
             const projectType = document.getElementById('projectType').value;
 
-            // Create a basic .sb3 file structure based on project type
             let projectData = createProjectData(projectName, projectType);
-
-            // Convert to JSON string
             const jsonString = JSON.stringify(projectData);
 
-            // Create a blob and download
             const blob = new Blob([jsonString], { type: 'application/json' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -400,11 +396,10 @@
             a.click();
             window.URL.revokeObjectURL(url);
 
-            addMessage(`✅ Your "${projectName}" project has been generated and is ready to download! Upload it to Scratch now.`, false);
+            addMessage(`✅ Your "${projectName}" project has been generated and is downloading! Upload it to Scratch at https://scratch.mit.edu`, false);
         }
 
         function createProjectData(name, type) {
-            // Base project structure
             const baseProject = {
                 targets: [
                     {
@@ -480,7 +475,6 @@
         }
 
         function generateBlocksForType(type) {
-            // Generate different blocks based on project type
             const blocks = {};
 
             if (type === 'movement') {
@@ -495,17 +489,6 @@
                     x: 50,
                     y: 50
                 };
-                blocks['block2'] = {
-                    opcode: "control_if",
-                    next: "block3",
-                    parent: "block1",
-                    inputs: {
-                        CONDITION: [2, "block4"],
-                        SUBSTACK: [2, "block5"]
-                    },
-                    fields: {},
-                    shadow: false
-                };
             } else if (type === 'game') {
                 blocks['block1'] = {
                     opcode: "events_whenflagclicked",
@@ -517,14 +500,6 @@
                     topLevel: true,
                     x: 50,
                     y: 50
-                };
-                blocks['block2'] = {
-                    opcode: "variables_setvariableto",
-                    next: null,
-                    parent: "block1",
-                    inputs: { VALUE: [1, [4, "0"]] },
-                    fields: { VARIABLE: ["Score", "dummy_id"] },
-                    shadow: false
                 };
             }
 
@@ -553,7 +528,6 @@
             if (e.key === 'Enter') sendChat();
         });
 
-        // Initial preview
         updatePreview();
     </script>
 </body>
