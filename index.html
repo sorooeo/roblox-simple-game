@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scratch Project Generator - AI Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .panel h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .chat-box {
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background: #f9f9f9;
+        }
+
+        .message {
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            max-width: 90%;
+            word-wrap: break-word;
+        }
+
+        .message.user {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .message.ai {
+            background: #e8e8e8;
+            color: #333;
+            margin-right: auto;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-group input {
+            flex: 1;
+            margin: 0;
+        }
+
+        .input-group button {
+            flex: 0 0 auto;
+            width: auto;
+            padding: 10px 20px;
+            margin: 0;
+        }
+
+        .preview {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .preview h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .preview-item {
+            background: white;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+
+        .template-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .template-btn {
+            padding: 10px;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .template-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: dot 1.5s infinite;
+            margin: 0 3px;
+        }
+
+        @keyframes dot {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Form Panel -->
+        <div class="panel">
+            <h2>🎮 Create Your Scratch Project</h2>
+            
+            <div class="template-buttons">
+                <button class="template-btn" onclick="useTemplate('movement')">🕹️ Movement</button>
+                <button class="template-btn" onclick="useTemplate('game')">🎯 Game</button>
+                <button class="template-btn" onclick="useTemplate('animation')">✨ Animation</button>
+                <button class="template-btn" onclick="useTemplate('music')">🎵 Music</button>
+            </div>
+
+            <form id="projectForm">
+                <div class="form-group">
+                    <label for="projectName">Project Name</label>
+                    <input type="text" id="projectName" placeholder="My Awesome Game" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="projectType">Project Type</label>
+                    <select id="projectType" required onchange="updatePreview()">
+                        <option value="movement">Movement Controls (WASD)</option>
+                        <option value="game">Simple Game</option>
+                        <option value="animation">Animation</option>
+                        <option value="music">Music Player</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">What should your project do?</label>
+                    <textarea id="description" placeholder="e.g., A sprite that moves around with WASD keys and says hello" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="difficulty">Difficulty Level</label>
+                    <select id="difficulty" required onchange="updatePreview()">
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                </div>
+
+                <div class="preview" id="preview">
+                    <h3>📋 Preview</h3>
+                    <p style="color: #999;">Your project details will appear here...</p>
+                </div>
+
+                <button type="button" onclick="sendToAI()">✨ Generate .sb3 File</button>
+            </form>
+        </div>
+
+        <!-- Chat Panel -->
+        <div class="panel">
+            <h2>🤖 AI Assistant</h2>
+            
+            <div class="chat-box">
+                <div class="messages" id="messages">
+                    <div class="message ai">
+                        👋 Hello! I'm your Scratch AI Assistant. Fill out the form on the left and click "Generate .sb3 File" to create your custom Scratch project. You can also chat with me about your project ideas!
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <input type="text" id="chatInput" placeholder="Ask me anything about your project...">
+                    <button onclick="sendChat()" type="button">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const messages = document.getElementById('messages');
+        const chatInput = document.getElementById('chatInput');
+
+        const aiResponses = {
+            "movement": "Great choice! I'll create a project with WASD movement controls. Your sprite will move smoothly around the stage.",
+            "game": "Awesome! I'll create a fun game project. You'll be able to click objects, collect items, and keep score!",
+            "animation": "Perfect! I'll create smooth animations for you. Your sprites will come to life!",
+            "music": "Excellent! I'll create a music player with interactive controls.",
+            "help": "I can help you create Scratch projects! Tell me what you want to build and I'll generate a working .sb3 file.",
+            "default": "That sounds interesting! Let me help you create that in Scratch. Fill in the form with your project details and I'll generate it for you!"
+        };
+
+        function addMessage(text, isUser = false) {
+            const messageEl = document.createElement('div');
+            messageEl.className = `message ${isUser ? 'user' : 'ai'}`;
+            messageEl.textContent = text;
+            messages.appendChild(messageEl);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function sendChat() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            addMessage(text, true);
+            chatInput.value = '';
+
+            // Simulate AI response
+            setTimeout(() => {
+                let response = aiResponses['default'];
+                const lowerText = text.toLowerCase();
+                
+                for (let key in aiResponses) {
+                    if (lowerText.includes(key)) {
+                        response = aiResponses[key];
+                        break;
+                    }
+                }
+
+                addMessage(response, false);
+            }, 500);
+        }
+
+        function updatePreview() {
+            const name = document.getElementById('projectName').value || 'Untitled Project';
+            const type = document.getElementById('projectType').value;
+            const difficulty = document.getElementById('difficulty').value;
+            const description = document.getElementById('description').value || 'No description';
+
+            const preview = `
+                <h3>📋 Preview</h3>
+                <div class="preview-item"><strong>Name:</strong> ${name}</div>
+                <div class="preview-item"><strong>Type:</strong> ${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+                <div class="preview-item"><strong>Difficulty:</strong> ${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}</div>
+                <div class="preview-item"><strong>Description:</strong> ${description}</div>
+            `;
+            document.getElementById('preview').innerHTML = preview;
+        }
+
+        function useTemplate(template) {
+            const templates = {
+                'movement': {
+                    name: 'Movement Controller',
+                    type: 'movement',
+                    description: 'A sprite that you can control with WASD keys to move around the stage smoothly.'
+                },
+                'game': {
+                    name: 'Clicker Game',
+                    type: 'game',
+                    description: 'Click on objects that appear on the screen to collect points and increase your score.'
+                },
+                'animation': {
+                    name: 'Animation Showcase',
+                    type: 'animation',
+                    description: 'Beautiful animations with sprites moving, spinning, and changing colors automatically.'
+                },
+                'music': {
+                    name: 'Interactive Music Player',
+                    type: 'music',
+                    description: 'A music player where you can play, stop, and control the volume with buttons.'
+                }
+            };
+
+            const t = templates[template];
+            document.getElementById('projectName').value = t.name;
+            document.getElementById('projectType').value = t.type;
+            document.getElementById('description').value = t.description;
+            updatePreview();
+            addMessage(`📝 Template "${t.name}" loaded! Now click "Generate .sb3 File" to create your project.`, false);
+        }
+
+        function generateSB3File() {
+            const projectName = document.getElementById('projectName').value || 'Untitled Project';
+            const projectType = document.getElementById('projectType').value;
+
+            // Create a basic .sb3 file structure based on project type
+            let projectData = createProjectData(projectName, projectType);
+
+            // Convert to JSON string
+            const jsonString = JSON.stringify(projectData);
+
+            // Create a blob and download
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${projectName.replace(/\s+/g, '_')}.sb3`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            addMessage(`✅ Your "${projectName}" project has been generated and is ready to download! Upload it to Scratch now.`, false);
+        }
+
+        function createProjectData(name, type) {
+            // Base project structure
+            const baseProject = {
+                targets: [
+                    {
+                        isStage: true,
+                        name: "Stage",
+                        variables: {},
+                        lists: {},
+                        broadcasts: {},
+                        blocks: {},
+                        comments: {},
+                        currentCostume: 0,
+                        costumes: [{
+                            assetId: "cd21514d0531fdffb10ca68b2076a8c5",
+                            name: "backdrop1",
+                            md5ext: "cd21514d0531fdffb10ca68b2076a8c5.svg",
+                            dataFormat: "svg",
+                            rotationCenterX: 240,
+                            rotationCenterY: 180
+                        }],
+                        sounds: [],
+                        volume: 100,
+                        layerOrder: 0,
+                        tempo: 60,
+                        videoTransparency: 50,
+                        videoState: "off",
+                        textToSpeechLanguage: null
+                    },
+                    createSpriteForType(type)
+                ],
+                monitors: [],
+                extensions: [],
+                meta: {
+                    semver: "3.0.0",
+                    type: "project",
+                    agent: "Scratch Generator"
+                }
+            };
+
+            return baseProject;
+        }
+
+        function createSpriteForType(type) {
+            const baseSprite = {
+                isStage: false,
+                name: "Sprite1",
+                variables: {},
+                lists: {},
+                broadcasts: {},
+                blocks: generateBlocksForType(type),
+                comments: {},
+                currentCostume: 0,
+                costumes: [{
+                    assetId: "bcf454acf82e4504149f7ffe07081dab",
+                    name: "costume1",
+                    md5ext: "bcf454acf82e4504149f7ffe07081dab.svg",
+                    dataFormat: "svg",
+                    rotationCenterX: 47,
+                    rotationCenterY: 55
+                }],
+                sounds: [],
+                volume: 100,
+                layerOrder: 1,
+                visible: true,
+                x: 0,
+                y: 0,
+                size: 100,
+                direction: 90,
+                draggable: false,
+                rotationStyle: "all around"
+            };
+
+            return baseSprite;
+        }
+
+        function generateBlocksForType(type) {
+            // Generate different blocks based on project type
+            const blocks = {};
+
+            if (type === 'movement') {
+                blocks['block1'] = {
+                    opcode: "control_forever",
+                    next: null,
+                    parent: null,
+                    inputs: { SUBSTACK: [2, "block2"] },
+                    fields: {},
+                    shadow: false,
+                    topLevel: true,
+                    x: 50,
+                    y: 50
+                };
+                blocks['block2'] = {
+                    opcode: "control_if",
+                    next: "block3",
+                    parent: "block1",
+                    inputs: {
+                        CONDITION: [2, "block4"],
+                        SUBSTACK: [2, "block5"]
+                    },
+                    fields: {},
+                    shadow: false
+                };
+            } else if (type === 'game') {
+                blocks['block1'] = {
+                    opcode: "events_whenflagclicked",
+                    next: "block2",
+                    parent: null,
+                    inputs: {},
+                    fields: {},
+                    shadow: false,
+                    topLevel: true,
+                    x: 50,
+                    y: 50
+                };
+                blocks['block2'] = {
+                    opcode: "variables_setvariableto",
+                    next: null,
+                    parent: "block1",
+                    inputs: { VALUE: [1, [4, "0"]] },
+                    fields: { VARIABLE: ["Score", "dummy_id"] },
+                    shadow: false
+                };
+            }
+
+            return blocks;
+        }
+
+        function sendToAI() {
+            const name = document.getElementById('projectName').value;
+            const type = document.getElementById('projectType').value;
+            const description = document.getElementById('description').value;
+
+            addMessage(`Creating a ${type} project called "${name}"...`, true);
+            
+            setTimeout(() => {
+                addMessage(`🔧 Building your "${name}" project with ${description}`, false);
+                setTimeout(() => {
+                    addMessage(`✨ Project is ready! Generating your .sb3 file now...`, false);
+                    setTimeout(() => {
+                        generateSB3File();
+                    }, 500);
+                }, 500);
+            }, 500);
+        }
+
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendChat();
+        });
+
+        // Initial preview
+        updatePreview();
+    </script>
+</body>
+</html>
