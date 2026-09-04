@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Click the Blocks - Simple Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .game-area {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            cursor: crosshair;
+        }
+
+        .block {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            transition: transform 0.1s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .block:hover {
+            transform: scale(1.1);
+        }
+
+        .block:active {
+            transform: scale(0.95);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .instructions {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            color: #333;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .instructions h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .instructions ul {
+            list-style-position: inside;
+            line-height: 1.8;
+        }
+
+        .timer {
+            font-size: 1.2em;
+            color: #667eea;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Click the Blocks</h1>
+        <p class="subtitle">How many can you click in 60 seconds?</p>
+
+        <div class="score-display">
+            Score: <span id="score">0</span>
+        </div>
+
+        <div class="game-area" id="gameArea"></div>
+
+        <div class="timer">
+            Time: <span id="timer">60</span>s
+        </div>
+
+        <div class="button-group">
+            <button id="startBtn" onclick="startGame()">Start Game</button>
+            <button class="reset-btn" id="resetBtn" onclick="resetGame()">Reset</button>
+        </div>
+
+        <div class="instructions">
+            <h3>📋 How to Play:</h3>
+            <ul>
+                <li>Click the "Start Game" button to begin</li>
+                <li>Click on the colored blocks as they appear</li>
+                <li>Each block you click = 1 point</li>
+                <li>You have 60 seconds to get the highest score!</li>
+                <li>Click "Reset" to start over</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let score = 0;
+        let timeLeft = 60;
+        let gameActive = false;
+        const gameArea = document.getElementById('gameArea');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const startBtn = document.getElementById('startBtn');
+
+        const colors = [
+            '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', 
+            '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'
+        ];
+
+        function startGame() {
+            score = 0;
+            timeLeft = 60;
+            gameActive = true;
+            scoreDisplay.textContent = '0';
+            timerDisplay.textContent = '60';
+            startBtn.disabled = true;
+            gameArea.innerHTML = '';
+
+            // Start spawning blocks
+            const spawnInterval = setInterval(() => {
+                if (gameActive) {
+                    spawnBlock();
+                } else {
+                    clearInterval(spawnInterval);
+                }
+            }, 800);
+
+            // Start countdown timer
+            const timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function spawnBlock() {
+            if (!gameActive) return;
+
+            const block = document.createElement('div');
+            block.className = 'block';
+            
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            block.style.backgroundColor = randomColor;
+
+            const randomX = Math.random() * (gameArea.clientWidth - 50);
+            const randomY = Math.random() * (gameArea.clientHeight - 50);
+            
+            block.style.left = randomX + 'px';
+            block.style.top = randomY + 'px';
+            block.textContent = '+1';
+
+            block.onclick = (e) => {
+                e.stopPropagation();
+                if (gameActive) {
+                    score++;
+                    scoreDisplay.textContent = score;
+                    block.remove();
+                }
+            };
+
+            gameArea.appendChild(block);
+
+            // Remove block after 2 seconds if not clicked
+            setTimeout(() => {
+                if (block.parentNode) {
+                    block.remove();
+                }
+            }, 2000);
+        }
+
+        function endGame() {
+            gameActive = false;
+            startBtn.disabled = false;
+            gameArea.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 2em; color: #667eea; font-weight: bold;">Game Over! Final Score: ${score}</div>`;
+        }
+
+        function resetGame() {
+            gameActive = false;
+            score = 0;
+            timeLeft = 60;
+            scoreDisplay.textContent = '0';
+            timerDisplay.textContent = '60';
+            gameArea.innerHTML = '';
+            startBtn.disabled = false;
+        }
+
+        // Initial setup
+        resetGame();
+    </script>
+</body>
+</html>
